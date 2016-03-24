@@ -3,18 +3,18 @@
 DeckLink::~DeckLink() {
   close();
 }
-DeckLink() {
-  deckLInk = NULL;
+DeckLink::DeckLink() {
+  BMDeckLink = NULL;
 }
-DeckLink(const string &nameOfDevice) {
-  deckLink = NULL;
+DeckLink::DeckLink(const string &nameOfDevice) {
+  BMDeckLink = NULL;
   connectTo(nameOfDevice);
 }
 
-bool isOpen() {
-  return deckLink;
+bool DeckLink::isOpen() {
+  return BMDeckLink;
 }
-bool connectTo(const string &nameOfDevice) {
+bool DeckLink::connectTo(const string &nameOfDevice) {
   vector<string>      names;
   IDeckLinkIterator*	deckLinkIterator = CreateDeckLinkIteratorInstance();
   IDeckLink*				  deckLinkTemp;
@@ -26,48 +26,48 @@ bool connectTo(const string &nameOfDevice) {
   if(deckLinkIterator == NULL) {
     //Couldn't create an iterator.
     //The Decklink drives may not be installed
-    return names;
+    return false;
   }
 
-  while(deckLinkIterator->Next(&deckLink) == S_OK) {
-    char *nameTemp = NULL;
-    deckLinkTemp->GetModelName((const char **) &deviceNameString);
-    HRESULT result = deckLink->GetModelName((const char **) &name);
+  while(deckLinkIterator->Next(&deckLinkTemp) == 0) {
+    char *nameTemp = NULL;  
+    int result = deckLinkTemp->GetModelName((const char **) &nameTemp);
+    
 
-    if(result == s_ok &&
+    if(result == 0 &&
       nameOfDevice.compare(nameTemp) == 0) {
-      deckLink = deckLink;
+      BMDeckLink = deckLinkTemp;
       return true;
     }
     delete nameTemp;
-    deckLink->Release();
+    deckLinkTemp->Release();
   }
   deckLinkIterator->Release();
   return false;
 }
-void close() {
-  if(deckLInk) {
-    deckLink->Release();
-    deckLInk = NULL;
+void DeckLink::close() {
+  if(isOpen()) {
+    BMDeckLink->Release();
+    BMDeckLink = NULL;
   }
 }
 
-vector<displayMode> getOutputModes() {
+vector<DeckLink::displayMode> DeckLink::getOutputModes() {
   IDeckLinkOutput*					     deckLinkOutput = NULL;
 	IDeckLinkDisplayModeIterator*	 displayModeIterator = NULL;
 	IDeckLinkDisplayMode*				   displayMode = NULL;
 
-  std::vector<displayMode> displayModes;
+  std::vector<DeckLink::displayMode> displayModes;
 
   // Query the DeckLink for its configuration interface
-  result = deckLink->QueryInterface(IID_IDeckLinkOutput, (void**)&deckLinkOutput);
-  if (result != S_OK) {
+  int result = BMDeckLink->QueryInterface(IID_IDeckLinkOutput, (void**)&deckLinkOutput);
+  if (result != 0) {
     //Couldn't open deckLinkOutput
     return displayModes;
   }
   // Obtain an IDeckLinkDisplayModeIterator to enumerate the display modes supported on output
   result = deckLinkOutput->GetDisplayModeIterator(&displayModeIterator);
-  if (result != S_OK) {
+  if (result != 0) {
     //"Could not obtain the video output display mode iterator
     deckLinkOutput->Release();
     return displayModes;
@@ -75,9 +75,9 @@ vector<displayMode> getOutputModes() {
   while (displayModeIterator->Next(&displayMode) == S_OK) {
 		char *displayModeString = NULL;
 
-		result = displayMode->GetName((const char **) &displayModeString);
-		if (result == S_OK) {
-      displayMode mode;
+    result = displayMode->GetName((const char **) &displayModeString);
+    if (result == S_OK) {
+      DeckLink::displayMode mode;
       mode.name = displayModeString;
       mode.width = displayMode->GetWidth();
       mode.height = displayMode->GetHeight();
@@ -92,7 +92,7 @@ vector<displayMode> getOutputModes() {
   return displayModes;
 }
 
-vector<string> DeckLink::getDecklinkNames() {
+vector<string> DeckLink::DeckLink::getDecklinkNames() {
   vector<string> names;
   IDeckLinkIterator*	deckLinkIterator = CreateDeckLinkIteratorInstance();
   IDeckLink*				deckLink;
@@ -105,10 +105,9 @@ vector<string> DeckLink::getDecklinkNames() {
 
   while(deckLinkIterator->Next(&deckLink) == S_OK) {
     char *name = NULL;
-    deckLink->GetModelName((const char **) &deviceNameString);
-    HRESULT result = deckLink->GetModelName((const char **) &name);
+    int result = deckLink->GetModelName((const char **) &name);
 
-    if(result == s_ok) {
+    if(result == 0) {
       names.push_back(name);
     }
     delete name;

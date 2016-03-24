@@ -1,6 +1,7 @@
+#pragma once
+
 #include <vector>
 #include <string>
-#include <map>
 
 #include "decklinkSDK/DeckLinkAPI.h"
 
@@ -15,12 +16,12 @@ public:
     int     frameRate;
 
     bool compare(const displayMode &other) {
-      return  name.compare(other) &&
+      return  name.compare(other.name) &&
               width == other.width &&
               height == other.height &&
               frameRate == other.frameRate;
     }
-  }
+  };
   ~DeckLink();
   DeckLink();
   DeckLink(const string &nameOfDevice);
@@ -30,11 +31,11 @@ public:
   bool isOpen();
 
   vector<displayMode> getOutputModes();
-  setOutMode(displayMode);
+  //bool setOutMode(displayMode);
 
   static vector<string> getDecklinkNames();
 
 private:
   string name;
-  IDeckLink *deckLink;
-}
+  IDeckLink *BMDeckLink;
+};
